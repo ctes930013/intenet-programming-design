@@ -1,0 +1,622 @@
+<!DCOTYPE html>
+
+<html>
+	<head>
+		<meta charset = "utf-8">
+		<title>pokers</title>
+		<style type = "text/css">
+			body 			 {background: #66ffff;
+							  position: relative;
+							  font-family: Helvetica;}
+			h1				 {color: #33FF33;
+							  font-family: Geneva;}
+			.titlecolor		 {color: #FF0088;
+							  font-family: Geneva;}	
+			.begingamer		 {margin-left: 50px;}
+			#outputscoreA    {position: absolute;
+							  top: 350px;
+							  left: 600px;
+							  color: #c10066;}
+			#outputscoreB    {position: absolute;
+							  top: 400px;
+							  left: 600px;
+							  color: #cc6600;}
+			#outputscoreC    {position: absolute;
+							  top: 450px;
+							  left: 600px;
+							  color: #220088;}
+			#outputscoreD    {position: absolute;
+							  top: 500px;
+							  left: 600px;
+							  color: #ff5511;}
+			#rally           {position: absolute;
+							  top: 300px;
+							  left: 600px;
+							  color: maroon;}
+			#bright          {position: absolute;
+							  top: 335px;
+							  left: 1000px;}
+			#dark            {position: absolute;
+							  top: 425px;
+							  left: 1000px;}
+			#playerwin		 {position: absolute;
+							  top: 100px;
+							  left: 650px;
+							  color: #008800;
+							  font-size:20;} 
+			#playerlose		 {position: absolute;
+							  top: 200px;
+							  left: 650px;
+							  color: #9999ff;
+							  font-size:20;}  	
+			#startgame		 {position: absolute;
+							  top: 400px;
+							  left: 650px;}		  
+		</style>
+		<script type = "text/javascript">
+		var cardArr = new Array();  //用來記錄隨機發牌的陣列
+		var playercard = new Array();  //用來記錄隨機assign位置的陣列
+		var count = -1; //紀錄翻牌次數
+		var scoreA = 0;  //紀錄累計的分數
+		var scoreB = 0;
+		var scoreC = 0;
+		var scoreD = 0;
+		var recordA = new Array();  //紀錄翻對幾張牌
+		var recordB = new Array();
+		var recordC = new Array();
+		var recordD = new Array();
+		var record = new Array(2);  //紀錄是否翻到有兩個一樣的牌
+		var noscore = new Array();  //紀錄使用者翻開的第一張牌
+		var noscore1 = new Array();  //紀錄使用者翻開的第二張牌
+		var doubleclick = new Array();
+		var decodecard = new Array();  //紀錄使用者答對後要翻牌
+		var scorecount = 0;  
+		var playercount = 1;  //用來表示四個玩家的值
+		var recordAcount = 0;
+		var recordBcount = 0;
+		var recordCcount = 0;
+		var recordDcount = 0;
+		for(var i=0;i<=49;i++)  //紀錄各玩家答對的題數
+		{
+			recordA[i] = i;
+			recordB[i] = i;
+			recordC[i] = i;
+			recordD[i] = i;
+		}
+		for(var i=0;i<=49;i++)  //初始化答對翻牌的陣列為-1
+		{
+			decodecard[i] = -1;
+		}
+		function start()
+		{
+			var fourrowcolumn = document.getElementById("four");
+			fourrowcolumn.addEventListener("click",setButton4,false);
+			var fiverowcolumn = document.getElementById("five");
+			fiverowcolumn.addEventListener("click",setButton5,false);
+			var sixrowcolumn = document.getElementById("six");
+			sixrowcolumn.addEventListener("click",setButton6,false);
+			var sevenrowcolumn = document.getElementById("seven");
+			sevenrowcolumn.addEventListener("click",setButton7,false);
+		}
+		function setButton4()
+		{
+			four.disabled = "true";
+			five.disabled = "true";
+			six.disabled = "true";
+			seven.disabled = "true";
+			geneRandom(4);
+		}
+		function setButton5()
+		{
+			four.disabled = "true";
+			five.disabled = "true";
+			six.disabled = "true";
+			seven.disabled = "true";
+			geneRandom(5);
+		}
+		function setButton6()
+		{
+			four.disabled = "true";
+			five.disabled = "true";
+			six.disabled = "true";
+			seven.disabled = "true";
+			geneRandom(6);
+		}
+		function setButton7()
+		{
+			four.disabled = "true";
+			five.disabled = "true";
+			six.disabled = "true";
+			seven.disabled = "true";
+			geneRandom(7);
+		}
+		function geneRandom(n)  //發牌
+		{
+			var size = (n*n)/2;  //多少乘多少的維度
+			if(size%2==0)  //4X4及6X6
+			{
+				for(var i=0;i<size;i++)
+				{
+					cardArr[i] = Math.floor(Math.random()*52);
+					for(var j=0;j<i;j++)
+					{
+						if(cardArr[i] == cardArr[j])
+						{
+							i--;   //若有兩個同樣的牌，則重取一次亂數
+							break;
+						}
+					}
+					cardArr[i+size] = cardArr[i];   //暫時將另外一個一樣的牌放在這個陣列
+				}
+			}
+			else  //5X5及7X7
+			{
+				for(var i=0;i<size;i++)
+				{
+					cardArr[i] = Math.floor(Math.random()*52);
+					for(var j=0;j<i;j++)
+					{
+						if(cardArr[i] == cardArr[j])
+						{
+							i--;
+							break;
+						}
+					}
+					cardArr[i+Math.floor(size)] = cardArr[i];
+				}
+			}	
+			indexRandom(n);//將產生的牌組隨機assign位置
+		}
+		function indexRandom(n)
+		{
+			var position = new Array();
+			var size = n*n;
+			for(var i=0;i<size;i++)
+			{
+				position[i] = Math.floor(Math.random()*size);
+				for(var j=0;j<i;j++)
+				{
+					if(position[i] == position[j])
+					{
+						i--;
+						break;
+					}
+				}
+				playercard[i] = cardArr[position[i]];  //把牌組assign到存放位置的陣列
+			}
+			output(n);
+		}
+		function output(n)  //輸出牌組
+		{
+			var outputArr = document.getElementById("btn1");  //顯示記憶卡牌
+			var begingame = document.getElementById("begingame");
+			var size = n*n;
+			for(var i=0;i<size;i++)
+			{
+				if(i%n == 0)
+				{
+					outputArr.innerHTML += "<br>";
+				}
+				outputArr.innerHTML += "<button id = card"+i+"><img src = 'D:\\picture\\pokers\\"+(playercard[i])+".png'></button>";
+			}
+			begingame.innerHTML = "<button id = startgame><img src = 'D:\\picture\\startgame.png'></button>";
+			document.getElementById("startgame").addEventListener("click",function(){beginbtn(size,outputArr,n)},false);  //當玩家按下startgame按鈕之後
+		}
+		function beginbtn(size,outputArr,n)
+		{
+			var bright = document.getElementById("bright");
+			var dark = document.getElementById("dark");
+			begingame.innerHTML = "";
+			outputArr.innerHTML = "";  //把原先的明牌清掉
+			if(count == 0)
+			{
+				for(var i=0;i<size;i++)
+				{
+					if(i%n == 0)
+					{
+						outputArr.innerHTML += "<br>";
+					}
+					if(i == doubleclick[0] || i == decodecard[i])  //若使用者翻開第一張牌或答對，則要翻哪張牌
+					{
+						outputArr.innerHTML += "<button id = card"+i+"><img src = 'D:\\picture\\pokers\\"+(playercard[i])+".png'></button>";
+					}
+					else  //若沒有，則持續暗牌
+					{
+						outputArr.innerHTML += "<button id = card"+i+"><img src = 'D:\\picture\\pokers\\back1.png'></button>";  //改成暗牌
+					}				
+				}
+			}
+			else if(count == -1)
+			{
+				for(var i=0;i<size;i++)
+				{
+					if(i%n == 0)
+					{
+						outputArr.innerHTML += "<br>";
+					}
+					if(i == doubleclick[0] || i == doubleclick[1] || i == decodecard[i])  //若使用者翻開第一張和第二牌或答對，則要翻哪張牌
+					{
+						outputArr.innerHTML += "<button id = card"+i+"><img src = 'D:\\picture\\pokers\\"+(playercard[i])+".png'></button>";
+					}
+					else  //若沒有，則持續暗牌
+					{
+						outputArr.innerHTML += "<button id = card"+i+"><img src = 'D:\\picture\\pokers\\back1.png'></button>";  //改成暗牌
+					}				
+				}
+			}
+			bright.innerHTML = "<button id = 'brightcard'><img src = 'D:\\picture\\bright.jpg'></button>";
+			dark.innerHTML = "<button id = 'darkcard'><img src = 'D:\\picture\\dark.jpg'></button>";
+			darkcard.disabled = "true";
+			document.getElementById("brightcard").addEventListener("click",function(){brightoutput(n,size,outputArr,dark)},false);
+			cardbtn(size,outputArr);
+		}
+		function brightoutput(n,size,outputArr,dark)  //切換至明牌模式
+		{
+			outputArr.innerHTML = "";
+			brightcard.disabled = "true";
+			for(var i=0;i<size;i++)
+			{
+				if(i%n == 0)
+				{
+					outputArr.innerHTML += "<br>";
+				}
+				outputArr.innerHTML += "<button id = card"+i+"><img src = 'D:\\picture\\pokers\\"+(playercard[i])+".png'></button>";
+			}
+			dark.addEventListener("click",function(){beginbtn(size,outputArr,n)},false);
+			cardbtn(size,outputArr);
+		}
+		function cardbtn(size,outputArr)   //撲克牌按鈕觸發情形
+		{
+			document.getElementById("card0").addEventListener("click",function(){outputValue(0,size,outputArr)},false);
+			document.getElementById("card1").addEventListener("click",function(){outputValue(1,size,outputArr)},false);
+			document.getElementById("card2").addEventListener("click",function(){outputValue(2,size,outputArr)},false);
+			document.getElementById("card3").addEventListener("click",function(){outputValue(3,size,outputArr)},false);
+			document.getElementById("card4").addEventListener("click",function(){outputValue(4,size,outputArr)},false);
+			document.getElementById("card5").addEventListener("click",function(){outputValue(5,size,outputArr)},false);
+			document.getElementById("card6").addEventListener("click",function(){outputValue(6,size,outputArr)},false);
+			document.getElementById("card7").addEventListener("click",function(){outputValue(7,size,outputArr)},false);
+			document.getElementById("card8").addEventListener("click",function(){outputValue(8,size,outputArr)},false);
+			document.getElementById("card9").addEventListener("click",function(){outputValue(9,size,outputArr)},false);
+			document.getElementById("card10").addEventListener("click",function(){outputValue(10,size,outputArr)},false);
+			document.getElementById("card11").addEventListener("click",function(){outputValue(11,size,outputArr)},false);
+			document.getElementById("card12").addEventListener("click",function(){outputValue(12,size,outputArr)},false);
+			document.getElementById("card13").addEventListener("click",function(){outputValue(13,size,outputArr)},false);
+			document.getElementById("card14").addEventListener("click",function(){outputValue(14,size,outputArr)},false);
+			document.getElementById("card15").addEventListener("click",function(){outputValue(15,size,outputArr)},false);
+			document.getElementById("card16").addEventListener("click",function(){outputValue(16,size,outputArr)},false);
+			document.getElementById("card17").addEventListener("click",function(){outputValue(17,size,outputArr)},false);
+			document.getElementById("card18").addEventListener("click",function(){outputValue(18,size,outputArr)},false);
+			document.getElementById("card19").addEventListener("click",function(){outputValue(19,size,outputArr)},false);
+			document.getElementById("card20").addEventListener("click",function(){outputValue(20,size,outputArr)},false);
+			document.getElementById("card21").addEventListener("click",function(){outputValue(21,size,outputArr)},false);
+			document.getElementById("card22").addEventListener("click",function(){outputValue(22,size,outputArr)},false);
+			document.getElementById("card23").addEventListener("click",function(){outputValue(23,size,outputArr)},false);
+			document.getElementById("card24").addEventListener("click",function(){outputValue(24,size,outputArr)},false);
+			document.getElementById("card25").addEventListener("click",function(){outputValue(25,size,outputArr)},false);
+			document.getElementById("card26").addEventListener("click",function(){outputValue(26,size,outputArr)},false);
+			document.getElementById("card27").addEventListener("click",function(){outputValue(27,size,outputArr)},false);
+			document.getElementById("card28").addEventListener("click",function(){outputValue(28,size,outputArr)},false);
+			document.getElementById("card29").addEventListener("click",function(){outputValue(29,size,outputArr)},false);
+			document.getElementById("card30").addEventListener("click",function(){outputValue(30,size,outputArr)},false);
+			document.getElementById("card31").addEventListener("click",function(){outputValue(31,size,outputArr)},false);
+			document.getElementById("card32").addEventListener("click",function(){outputValue(32,size,outputArr)},false);
+			document.getElementById("card33").addEventListener("click",function(){outputValue(33,size,outputArr)},false);
+			document.getElementById("card34").addEventListener("click",function(){outputValue(34,size,outputArr)},false);
+			document.getElementById("card35").addEventListener("click",function(){outputValue(35,size,outputArr)},false);
+			document.getElementById("card36").addEventListener("click",function(){outputValue(36,size,outputArr)},false);
+			document.getElementById("card37").addEventListener("click",function(){outputValue(37,size,outputArr)},false);
+			document.getElementById("card38").addEventListener("click",function(){outputValue(38,size,outputArr)},false);
+			document.getElementById("card39").addEventListener("click",function(){outputValue(39,size,outputArr)},false);
+			document.getElementById("card40").addEventListener("click",function(){outputValue(40,size,outputArr)},false);
+			document.getElementById("card41").addEventListener("click",function(){outputValue(41,size,outputArr)},false);
+			document.getElementById("card42").addEventListener("click",function(){outputValue(42,size,outputArr)},false);
+			document.getElementById("card43").addEventListener("click",function(){outputValue(43,size,outputArr)},false);
+			document.getElementById("card44").addEventListener("click",function(){outputValue(44,size,outputArr)},false);
+			document.getElementById("card45").addEventListener("click",function(){outputValue(45,size,outputArr)},false);
+			document.getElementById("card46").addEventListener("click",function(){outputValue(46,size,outputArr)},false);
+			document.getElementById("card47").addEventListener("click",function(){outputValue(47,size,outputArr)},false);
+			document.getElementById("card48").addEventListener("click",function(){outputValue(48,size,outputArr)},false);
+			document.getElementById("card49").addEventListener("click",function(){outputValue(49,size,outputArr)},false);
+		}
+		function outputValue(attribute,size,outputArr)
+		{
+			var outputscoreA = document.getElementById("outputscoreA");
+			var outputscoreB = document.getElementById("outputscoreB");
+			var outputscoreC = document.getElementById("outputscoreC");
+			var outputscoreD = document.getElementById("outputscoreD");
+			var rally = document.getElementById("rally");  //顯示此回合換誰翻牌
+			var playerwin = document.getElementById("playerwin");
+			var playerlose = document.getElementById("playerlose");
+			var n = Math.sqrt(size);
+			count++;
+			record[count] = playercard[attribute];
+			doubleclick[count] = attribute;
+			noscore[0]=-1;  //初始化為-1
+			noscore1[0]=-1;
+			if(count>=1) //若玩家已經翻開兩張牌
+			{
+				if(playercount == 5)  //若超過4，則使其強制等於1
+				{
+					playercount = 1;
+				}
+				if(playercount == 1)  //代表A玩家
+				{
+					rally.innerHTML = "由playerB翻牌";
+					if(doubleclick[0] == doubleclick[1])  //防呆(防止同時按壓兩次會計分的問題)
+					{
+						recordA[recordAcount]=recordA[recordAcount];  //分數不變
+						rally.innerHTML = "由playerA翻牌";
+						playercount--;  //先減後加，所以該回合仍然由同樣的玩家翻牌
+					}
+					else
+					{
+						if(record[0] == record[1])  //比較是否有相同的牌被翻開
+						{
+							recordAcount++;
+							decodecard[doubleclick[0]] = doubleclick[0];
+							decodecard[doubleclick[1]] = doubleclick[1];
+							for(var i=0;i<scorecount+1;i++)  //搜尋是否有之前已經翻過的牌
+							{
+								if(noscore[i] == record[0] || noscore1[i] == record[1])  //代表有翻過的牌
+								{
+									recordA[recordAcount-1] = recordA[recordAcount-1];
+									recordA[recordAcount-2] = 0;  //先把index往回推2個並把值assign為零
+									recordAcount--;  //並且把index-1
+									playercount--;
+									rally.innerHTML = "由playerA翻牌";
+									break;
+								}
+							}
+							recordA[recordAcount] = recordA[recordAcount]+recordA[recordAcount-1];  //由於index被減一，故把前一個index的值加上原本本身再加零，故維持不變
+							noscore[scorecount+1] = record[0];  //將牌的value紀錄到陣列裡，代表已經翻過的牌
+							noscore1[scorecount+1] = record[1];
+							scorecount++;
+							scoreA = recordA[recordAcount];
+						}
+						else
+						{
+							rally.innerHTML = "由playerB翻牌";
+							for(var i=0;i<scorecount+1;i++)  //搜尋是否有之前已經翻過的牌
+							{
+								if(noscore[i] == record[0] || noscore1[i] == record[1])  //代表有翻過的牌
+								{
+									playercount--;
+									rally.innerHTML = "由playerA翻牌";
+									break;
+								}
+							}
+						}
+					}
+					playercount++;
+				}
+				else if(playercount == 2)  //代表B玩家
+				{
+					rally.innerHTML = "由playerC翻牌";
+					if(doubleclick[0] == doubleclick[1])  //防呆(防止同時按壓兩次會計分的問題)
+					{
+						recordB[recordBcount]=recordB[recordBcount];
+						rally.innerHTML = "由playerB翻牌";
+						playercount--;
+					}
+					else
+					{
+						if(record[0] == record[1])  //比較是否有相同的牌被翻開
+						{
+							recordBcount++;
+							decodecard[doubleclick[0]] = doubleclick[0];
+							decodecard[doubleclick[1]] = doubleclick[1];
+							for(var i=0;i<scorecount+1;i++)  //搜尋是否有之前已經翻過的牌
+							{
+								if(noscore[i] == record[0] || noscore1[i] == record[1])  //代表有翻過的牌
+								{
+									recordB[recordBcount-1] = recordB[recordBcount-1];
+									recordB[recordBcount-2] = 0;  //先把index往回推2個並把值assign為零
+									recordBcount--;  //並且把index-1
+									playercount--;
+									rally.innerHTML = "由playerB翻牌";
+									break;
+								}
+							}
+							recordB[recordBcount] = recordB[recordBcount]+recordB[recordBcount-1];  //由於index被減一，故把前一個index的值加上原本本身再加零，故維持不變
+							noscore[scorecount+1] = record[0];  //將牌的value紀錄到陣列裡，代表已經翻過的牌
+							noscore1[scorecount+1] = record[1];
+							scorecount++;
+							scoreB = recordB[recordBcount];
+						}
+						else
+						{
+							rally.innerHTML = "由playerC翻牌";
+							for(var i=0;i<scorecount+1;i++)  //搜尋是否有之前已經翻過的牌
+							{
+								if(noscore[i] == record[0] || noscore1[i] == record[1])  //代表有翻過的牌
+								{
+									playercount--;
+									rally.innerHTML = "由playerB翻牌";
+									break;
+								}
+							}
+						}
+					}
+					playercount++;
+				}
+				else if(playercount == 3)  //代表C玩家
+				{
+					rally.innerHTML = "由playerD翻牌";
+					if(doubleclick[0] == doubleclick[1])  //防呆(防止同時按壓兩次會計分的問題)
+					{
+						recordC[recordCcount]=recordC[recordCcount];
+						rally.innerHTML = "由playerC翻牌";
+						playercount--;
+					}
+					else
+					{
+						if(record[0] == record[1])  //比較是否有相同的牌被翻開
+						{
+							recordCcount++;
+							decodecard[doubleclick[0]] = doubleclick[0];
+							decodecard[doubleclick[1]] = doubleclick[1];
+							for(var i=0;i<scorecount+1;i++)  //搜尋是否有之前已經翻過的牌
+							{
+								if(noscore[i] == record[0] || noscore1[i] == record[1])  //代表有翻過的牌
+								{
+									recordC[recordCcount-1] = recordC[recordCcount-1];
+									recordC[recordCcount-2] = 0;  //先把index往回推2個並把值assign為零
+									recordCcount--;  //並且把index-1
+									playercount--;
+									rally.innerHTML = "由playerC翻牌";
+									break;
+								}
+							}
+							recordC[recordCcount] = recordC[recordCcount]+recordC[recordCcount-1];  //由於index被減一，故把前一個index的值加上原本本身再加零，故維持不變
+							noscore[scorecount+1] = record[0];  //將牌的value紀錄到陣列裡，代表已經翻過的牌
+							noscore1[scorecount+1] = record[1];
+							scorecount++;
+							scoreC = recordC[recordCcount];
+						}
+						else
+						{
+							rally.innerHTML = "由playerD翻牌";
+							for(var i=0;i<scorecount+1;i++)  //搜尋是否有之前已經翻過的牌
+							{
+								if(noscore[i] == record[0] || noscore1[i] == record[1])  //代表有翻過的牌
+								{
+									playercount--;
+									rally.innerHTML = "由playerC翻牌";
+									break;
+								}
+							}
+						}
+					}
+					playercount++;
+				}
+				else if(playercount == 4)  //代表D玩家
+				{
+					rally.innerHTML = "由playerA翻牌";
+					if(doubleclick[0] == doubleclick[1])  //防呆(防止同時按壓兩次會計分的問題)
+					{
+						recordD[recordDcount]=recordD[recordDcount];
+						rally.innerHTML = "由playerD翻牌";
+						playercount--;
+					}
+					else
+					{
+						if(record[0] == record[1])  //比較是否有相同的牌被翻開，
+						{
+							recordDcount++;
+							decodecard[doubleclick[0]] = doubleclick[0];
+							decodecard[doubleclick[1]] = doubleclick[1];
+							for(var i=0;i<scorecount+1;i++)  //搜尋是否有之前已經翻過的牌
+							{
+								if(noscore[i] == record[0] || noscore1[i] == record[1])  //代表有翻過的牌
+								{
+									recordD[recordDcount-1] = recordD[recordDcount-1];
+									recordD[recordDcount-2] = 0;  //先把index往回推2個並把值assign為零
+									recordDcount--;  //並且把index-1
+									playercount--;
+									rally.innerHTML = "由playerD翻牌";
+									break;
+								}
+							}
+							recordD[recordDcount] = recordD[recordDcount]+recordD[recordDcount-1];  //由於index被減一，故把前一個index的值加上原本本身再加零，故維持不變
+							noscore[scorecount+1] = record[0];  //將牌的value紀錄到陣列裡，代表已經翻過的牌
+							noscore1[scorecount+1] = record[1];
+							scorecount++;
+							scoreD = recordD[recordDcount];
+						}
+						else
+						{
+							rally.innerHTML = "由playerA翻牌";
+							for(var i=0;i<scorecount+1;i++)  //搜尋是否有之前已經翻過的牌
+							{
+								if(noscore[i] == record[0] || noscore1[i] == record[1])  //代表有翻過的牌
+								{
+									playercount--;
+									rally.innerHTML = "由playerD翻牌";
+									break;
+								}
+							}
+						}
+					}
+					playercount++;
+				}	
+				outputscoreA.innerHTML = "playerA玩家的得分為"+scoreA;
+				outputscoreB.innerHTML = "playerB玩家的得分為"+scoreB;
+				outputscoreC.innerHTML = "playerC玩家的得分為"+scoreC;
+				outputscoreD.innerHTML = "playerD玩家的得分為"+scoreD;
+				count = -1;
+			}
+			var wincount = Math.floor(size/2);  //遊戲結束
+			if((recordAcount+recordBcount+recordCcount+recordDcount) >= wincount)  //將四位玩家的計數相加超過或等於size遊戲即結束
+			{
+				var maxsocre = Math.max(scoreA,scoreB,scoreC,scoreD);  //比較誰最贏
+				var minsocre = Math.min(scoreA,scoreB,scoreC,scoreD);  //比較誰最輸
+				var again = document.getElementById("again");
+				rally.innerHTML = ""; 
+				if(maxsocre == scoreA)
+				{
+					playerwin.innerHTML = "playerA玩家獲勝";
+				}
+				else if(maxsocre == scoreB)
+				{
+					playerwin.innerHTML = "playerB玩家獲勝";
+				}
+				else if(maxsocre == scoreC)
+				{
+					playerwin.innerHTML = "playerC玩家獲勝";
+				}
+				else if(maxsocre == scoreD)
+				{
+					playerwin.innerHTML = "playerD玩家獲勝";
+				}
+				if(minsocre == scoreA)
+				{
+					playerlose.innerHTML = "playerA玩家輸了";
+				}
+				else if(minsocre == scoreB)
+				{
+					playerlose.innerHTML = "playerB玩家輸了";
+				}
+				else if(minsocre == scoreC)
+				{
+					playerlose.innerHTML = "playerC玩家輸了";
+				}
+				else if(minsocre == scoreD)
+				{
+					playerlose.innerHTML = "playerD玩家輸了";
+				}
+				again.innerHTML = "<button id = reagain><img src = 'D:\\picture\\again.jpg'></button>";
+				document.getElementById("reagain").addEventListener("click",restart,false);
+			}
+			beginbtn(size,outputArr,n);
+		}
+			
+		function restart()
+		{
+			window.location.reload();  //直接將網頁重新整理
+		}
+ 		window.addEventListener("load",start,false);	
+		</script>
+	</head>
+	<body>
+		<marquee><h1>歡迎來到記憶卡牌的世界  挑戰你的記憶力</h1></marquee>
+		<p class = "titlecolor">請選擇維度大小:</p>
+		<form action = "#">
+			<input id = "four" type = "button" value = "4X4" style="width:100px;height:40px;font-size:25px;color:#0000AA;">
+			<input id = "five" type = "button" value = "5X5" style="width:100px;height:40px;font-size:25px;color:#0000AA;">
+			<input id = "six" type = "button" value = "6X6" style="width:100px;height:40px;font-size:25px;color:#0000AA;">
+			<input id = "seven" type = "button" value = "7X7" style="width:100px;height:40px;font-size:25px;color:#0000AA;">
+		</form>	
+		<div id = "btn1"></div>
+		<div id = "outputscoreA"></div>  
+		<div id = "outputscoreB"></div>
+		<div id = "outputscoreC"></div>
+		<div id = "outputscoreD"></div>
+		<div id = "rally"></div>
+		<div id = "playerwin"></div>
+		<div id = "playerlose"></div>
+		<div id = "bright"></div>
+		<div id = "dark"></div>
+		<div id = "again"></div>
+		<div id = "begingame"></div>
+	</body>
+</html>
